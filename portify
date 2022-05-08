@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+#
+# Generate deterministic port numbers for your apps
+
+set -o errexit -o nounset -o pipefail
+
+# shellcheck disable=SC2034
+readonly VERSION='0.1.0'
+
+main() {
+  local project_name="${1:-$(basename "$(pwd)")}"
+  local seed
+  seed="$(convert_string_to_decimal "${project_name}")"
+  # shellcheck disable=SC2034
+  local prgn_state
+  seed_xorshift128p_state prgn_state "${seed}"
+  generate_port prgn_state
+}
+
+convert_string_to_decimal() {
+  local name="$*"
+  local decimal=''
+  while read -r hexa; do
+    decimal+="$(("0x${hexa}"))"
+  done <<<"$(echo -ne "${name}" | xxd -c1 -p)"
+  echo "${decimal}"
+}
+
+generate_port() {
+  local -n prgn_gen=$1
+  local port="${prgn_gen[2]}"
+  while ! is_private_port "${port}"; do
+    # TODO: HACK: I rebuild the array on each iteration because nameref
+    # (declare -n or local -n), discards prgn_gen changes within while loop.
+    IFS=$',' read -ra prgn_gen <<<"$(xorshift128p prgn_gen)"
+    port="$(take_last 5 "${prgn_gen[2]}")"
+  done
+  echo "${port}"
+}
+
+seed_xorshift128p_state() {
+  local -n tuple=$1
+  # shellcheck disable=SC2034
+  tuple=("$2" "$((~"$2"))" '0')
+}
+
+is_private_port() {
+  local port="$1"
+  if [[ -z "${port}" ]] ||
+    starts_with "${port}" '0' ||
+    ((port < 49152)) ||
+    ((port > 65535)); then
+    false && return
+  fi
+}
+
+starts_with() {
+  [[ "${1#"$2"}" != "${1}" ]]
+}
+
+# https://en.wikipedia.org/w/index.php?title=Xorshift&oldid=1076110564#xorshift+
+xorshift128p() {
+  local -n xorshift128p_state=$1
+  local t="${xorshift128p_state[0]}"
+  local s="${xorshift128p_state[1]}"
+  local x0="${s}"
+  t=$((t ^ (t << 23)))
+  t=$((t ^ (t >> 18)))
+  t=$((t ^ (s ^ (s >> 5))))
+  local x1="${t}"
+  echo "${x0},${x1},$((s + t))"
+}
+
+take_last() {
+  local last_n="$1"
+  echo "${2: -${last_n}}"
+}
+
+main "$@"
