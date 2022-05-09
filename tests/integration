@@ -38,8 +38,17 @@ integration__test_simple_project_names() {
   done
 }
 
+integration__test_empty_project_name() {
+  local name=''
+  local actual
+  actual="$(./portify "${name}")"
+  local expect='53412'
+  assert_eq "${FUNCNAME[0]}" "${expect}" "${actual}"
+}
+
 main() {
   integration__test_simple_project_names
+  integration__test_empty_project_name
 }
 
 main "$@"
