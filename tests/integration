@@ -46,9 +46,19 @@ integration__test_empty_project_name() {
   assert_eq "${FUNCNAME[0]}" "${expect}" "${actual}"
 }
 
+integration__test_very_long_project_name() {
+  local base='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  local name="${base}${base}${base}${base}${base}${base}${base}${base}${base}"
+  local actual
+  actual="$(./portify "${name}")"
+  local expect='50422'
+  assert_eq "${FUNCNAME[0]}" "${expect}" "${actual}"
+}
+
 main() {
   integration__test_simple_project_names
   integration__test_empty_project_name
+  integration__test_very_long_project_name
 }
 
 main "$@"
