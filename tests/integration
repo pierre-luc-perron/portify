@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+##############################################################################
+# Testing Framework & Utilities
+##############################################################################
+
+fatal() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+  exit 1
+}
+
+assert_eq() {
+  local test_id="$1"
+  local expect="$2"
+  local actual="$3"
+  if [[ "${expect}" != "${actual}" ]]; then
+    fatal "assert_equal::${test_id} expect=${expect} got=${actual}"
+  fi
+}
+
+##############################################################################
+# Tests
+##############################################################################
+
+integration__test_simple_project_names() {
+  declare -Ar iterations=(
+    ['portify']='53412'
+    ['python']='52153'
+    ['cpython']='62110'
+    ['guix']='49936'
+    ['emacs']='56739'
+  )
+  local actual
+  for name in "${!iterations[@]}"; do
+    local expect="${iterations[$name]}"
+    actual="$(./portify "${name}")"
+    assert_eq "${FUNCNAME[0]}(${name})" "${expect}" "${actual}"
+  done
+}
+
+main() {
+  integration__test_simple_project_names
+}
+
+main "$@"
