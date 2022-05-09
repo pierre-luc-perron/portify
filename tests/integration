@@ -75,11 +75,23 @@ integration__test_project_name_with_spaces() {
   assert_eq "${FUNCNAME[0]}" "${expect}" "${actual}"
 }
 
+integration__test_project_name_with_dashes() {
+  local name='portify'
+  local actual
+  local unexpected
+  actual="$(./portify "${name}-42-")"
+  unexpected="$(./portify "${name}")"
+  assert_neq "${FUNCNAME[0]}" "${unexpected}" "${actual}"
+  local expect='60499'
+  assert_eq "${FUNCNAME[0]}" "${expect}" "${actual}"
+}
+
 main() {
   integration__test_simple_project_names
   integration__test_empty_project_name
   integration__test_very_long_project_name
   integration__test_project_name_with_spaces
+  integration__test_project_name_with_dashes
 }
 
 main "$@"
