@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+##############################################################################
+# Testing Framework & Utilities
+##############################################################################
+
+fatal() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+  exit 1
+}
+
+assert_eq() {
+  local test_id="$1"
+  local expect="$2"
+  local actual="$3"
+  if [[ "${expect}" != "${actual}" ]]; then
+    fatal "assert_equal::${test_id} expect=${expect} got=${actual}"
+  fi
+}
+
+##############################################################################
+# Tests
+##############################################################################
+
+property__test_generate_deterministic_ports() {
+  local name
+  local actual1
+  local actual2
+  for i in {2..128}; do
+    name="$(tr -dc 'a-zA-Z0-9' </dev/urandom | fold -w "${i}" | head -n 1)"
+    actual1="$(./portify "${name}")"
+    actual2="$(./portify "${name}")"
+    assert_eq "${FUNCNAME[0]}(${name})" "${actual1}" "${actual2}"
+  done
+}
+
+main() {
+  property__test_generate_deterministic_ports
+}
+
+main "$@"
