@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+readonly SCRIPT_PATH="$(dirname "$(realpath -s "$0")")"
+
 ##############################################################################
 # Testing Framework & Utilities
 ##############################################################################
@@ -18,6 +20,14 @@ assert_eq() {
   fi
 }
 
+simulate_project_port() {
+  local project_name="$1"
+  # Force port to a minimum width of 5 chars and justify on the left side (-).
+  printf "%-5s %s\n" "$(./portify "${project_name}")" "${project_name}"
+}
+
+export -f simulate_project_port
+
 ##############################################################################
 # Tests
 ##############################################################################
@@ -34,8 +44,36 @@ property__test_generate_deterministic_ports() {
   done
 }
 
+property__test_collide_rarely() {
+  declare -Ar iterations=(
+    [10]='1.00'   # 0% port collision
+    [100]='1.00'  # 0% port collision
+    [1000]='.97'  # 3% port collisions
+    [10000]='.74' # 26% port collisions
+  )
+  # The ratios above are generated against specific words, and other sets of
+  # words could lead to more or less collision. In other words, 0% port
+  # collision does not guarantee ports never collide. Instead, it demonstrates
+  # a low chance of collision. The previous statement above assumes genuine
+  # usage.
+  local nbr_distinct_ports
+  local actual
+  for nbr_words in "${!iterations[@]}"; do
+    local expect="${iterations[$nbr_words]}"
+    nbr_distinct_ports=$(head -n "${nbr_words}" "${SCRIPT_PATH}/words.txt" |
+      parallel simulate_project_port |
+      awk '{print $1}' |
+      sort |
+      uniq |
+      wc -l)
+    actual="$(bc <<<"scale=2; ${nbr_distinct_ports} / ${nbr_words}")"
+    assert_eq "${FUNCNAME[0]}(${nbr_words})" "${expect}" "${actual}"
+  done
+}
+
 main() {
   property__test_generate_deterministic_ports
+  property__test_collide_rarely
 }
 
 main "$@"
