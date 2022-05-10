@@ -94,10 +94,28 @@ property__test_accept_every_ascii_chars() {
   done
 }
 
+property__test_accept_every_unicode_chars() {
+  local name
+  local hex
+  local actual
+  local codepoint
+  for _ in {0..32}; do
+    # The maximum valid code point in Unicode is U+10FFFF or 1114111
+    # https://stackoverflow.com/a/27416004
+    codepoint=$((RANDOM % (1114111 + 1)))
+    hex=$(printf "%#x" "${codepoint}")
+    # cuts the first 2 chars i.e. '0x'
+    name="$(echo -e "\u${hex:2}")"
+    actual="$(./portify "${name}")"
+    assert_in "${FUNCNAME[0]}(${codepoint})" '49152' '65535' "${actual}"
+  done
+}
+
 main() {
   property__test_generate_deterministic_ports
   property__test_collide_rarely
   property__test_accept_every_ascii_chars
+  property__test_accept_every_unicode_chars
 }
 
 main "$@"
