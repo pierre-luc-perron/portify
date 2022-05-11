@@ -111,11 +111,24 @@ property__test_accept_every_unicode_chars() {
   done
 }
 
+property__test_varargs_act_as_spaces() {
+  local name
+  local actual1
+  local actual2
+  for i in {2..128}; do
+    name="$(tr -dc 'a-zA-Z0-9' </dev/urandom | fold -w "${i}" | head -n 1)"
+    actual1="$(./portify "${name}" "${name}")"
+    actual2="$(./portify "${name} ${name}")"
+    assert_eq "${FUNCNAME[0]}(${name})" "${actual1}" "${actual2}"
+  done
+}
+
 main() {
   property__test_generate_deterministic_ports
   property__test_collide_rarely
   property__test_accept_every_ascii_chars
   property__test_accept_every_unicode_chars
+  property__test_varargs_act_as_spaces
 }
 
 main "$@"
