@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-readonly SCRIPT_PATH="$(dirname "$(realpath -s "$0")")"
+SCRIPT_PATH="$(dirname "$(realpath -s "$0")")"
+readonly SCRIPT_PATH
 
 ##############################################################################
 # Testing Framework & Utilities
