@@ -5,10 +5,10 @@
 set -o errexit -o nounset -o pipefail
 
 # shellcheck disable=SC2034
-readonly VERSION='0.1.0'
+readonly VERSION='0.1.1'
 
 main() {
-  local project_name="${1:-$(basename "$(pwd)")}"
+  local project_name="${*:-$(basename "$(pwd)")}"
   local seed
   seed="$(convert_string_to_decimal "${project_name}")"
   # shellcheck disable=SC2034
