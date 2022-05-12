@@ -16,3 +16,10 @@ repos:
         name: run integration tests
         entry: ./tests/integration
         language: script
+  - repo: local
+    hooks:
+      - id: run-property-tests
+        name: run property tests
+        entry: ./tests/property
+        language: script
+        stages: [ "push" ]
