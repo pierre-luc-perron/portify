@@ -10,3 +10,9 @@ repos:
     hooks:
       - id: shfmt
         args: [ "-w", "-i", "2" ]
+  - repo: local
+    hooks:
+      - id: run-integration-tests
+        name: run integration tests
+        entry: ./tests/integration
+        language: script
